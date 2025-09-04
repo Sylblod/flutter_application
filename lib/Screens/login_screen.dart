@@ -8,7 +8,19 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
+
+
 class _LoginScreenState extends State<LoginScreen> {
+  //Cerebro de la logica de animacion
+  StateMachineController? controller; //Controlador de la maquina de estados (veo loq ue este cabiando)
+  SMIBool? isChecking; //Booleano que me dice si esta chequeando o no
+  SMIBool? isHandsUp; //Booleano que me dice si las manos
+  SMIBool? trigSuccess; //Booleano que me dice si tuvo exito
+  SMIBool? trigFail; //Booleano que me dice si tuvo fracaso   
+  SMINumber? numLook;
+
+
+
  bool _isHidden = true;
   @override
   Widget build(BuildContext context) {
@@ -28,10 +40,44 @@ class _LoginScreenState extends State<LoginScreen> {
                 //ancho de la pantalla calulado por mediaquery
                 width: size.width,
                 height: 200,
-                child: const RiveAnimation.asset('animated_login_character.riv')
-                ),
+                child: RiveAnimation.asset('animated_login_character.riv',
+                stateMachines: const ["Login Machine"],
+
+                onInit: (artboard){ 
+                  controller = StateMachineController.fromArtboard(artboard, "Login Machine");
+                  if(controller == null) return;
+                  artboard.addController(controller!);
+                  isChecking = controller!.findSMI("isChecking");
+                  isHandsUp = controller!.findSMI("isHandsUp");
+                  trigSuccess = controller!.findSMI("trigSuccess");
+                  trigFail = controller!.findSMI("trigFail");
+                  numLook = controller!.findSMI('numLook');
+                },)
+
+
+                ), //Email
                 SizedBox(height: 10),
                 TextField(
+                  /*onChanged: (value){
+                    if (isHandsUp != null) {
+                      isHandsUp!.change(false);
+                    }
+                    if (isChecking == null) return; 
+                      isChecking!.change(true);
+                    
+                  },*/
+                  onChanged: (value) {
+                  // No suba las manos al escribir email
+                  isHandsUp?.change(false);
+
+                  // Activa "mirar"
+                  isChecking?.change(true);
+
+                  // Mueve los ojos dependiendo del tamaño del texto
+                  if (numLook != null) {
+                    numLook!.value = (value.length * 3).toDouble().clamp(0, 60);
+                  }
+                },
                   keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
                     hintText: "Email",//hintText que significa texto de sugerencia
@@ -42,9 +88,17 @@ class _LoginScreenState extends State<LoginScreen> {
                     
                   ),
                   
-                ),
+                ), //password
                 SizedBox(height: 10),
                 TextField(
+                  onChanged: (value){
+                    if (isChecking != null) {
+                      isChecking!.change(false);
+                    }
+                    if (isHandsUp == null) return; 
+                      isHandsUp!.change(true);
+                    
+                  },
                   //para que no se vea la contraseña
                   obscureText: _isHidden,
                   decoration: InputDecoration(
@@ -74,8 +128,50 @@ class _LoginScreenState extends State<LoginScreen> {
                       decoration: TextDecoration.underline
                     ),
                   ),
+                ),
+                //boton de login   04092025
+                SizedBox(height: 20),
+                MaterialButton(
+                  onPressed: (){},
+                  color: Colors.blue,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)
+                  ),
+                  minWidth: size.width,
+                  height: 50,
+                  child: const Text(
+                    "Login",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("Don't have an account?"),
+                    SizedBox(width: 10),
+                    TextButton(
+                      onPressed: (){},
+                      child: const Text(
+                        "Sign up",
+                        style: TextStyle(
+                          color: Colors.blue,
+                          //negriita
+                          fontWeight: FontWeight.bold,
+                          decoration: TextDecoration.underline
+                        ),
+                      ),
+                    ),
+                    
+                  ],
                 )
-                
+
+
+
             ],
           ),
         )),
